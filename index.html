@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<!--
+  Google HTML5 slide template
+
+  Authors: Luke Mahé (code)
+           Marcin Wichary (code and design)
+
+           Dominic Mazzoni (browser compatibility)
+           Charles Chen (ChromeVox support)
+
+  URL: http://code.google.com/p/html5slides/
+-->
+
+<html>
+  <head>
+    <title>Hacking Day</title>
+
+    <meta charset='utf-8'>
+    <link rel="stylesheet" type="text/css" href="firasans/stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="style/styles.css">
+    <link rel="stylesheet" type="text/css" href="style/conferencia.css">
+    <script src='js/slides.js'></script>
+  </head>
+
+  <style>
+    /* Your individual styles here, or just use inline styles if that’s
+       what you want. */
+
+
+  </style>
+
+  <body style='display: none'>
+
+    <section class='slides layout-regular template-default'>
+
+      <!-- Your slides (<article>s) go here. Delete or comment out the
+           slides below. -->
+      <article class='biglogo'>
+      </article>
+
+      <article>
+        <h1>
+          WebActivities
+        </h1>
+        <p>
+          <a target="_blank" href="https://github.com/firefoxosedu/webactivities_provider">https://github.com/firefoxosedu/webactivities_provider</a>
+           <br>
+          <a target="_blank" href="https://github.com/firefoxosedu/webactivities_consumer">https://github.com/firefoxosedu/webactivities_consumer</a>
+        </p>
+      </article>
+
+      <article>
+        <h1>
+          Partnership
+        </h1>
+        <p>
+          Telefonica <strong id="red-heart">♥</strong> Mozilla Firefox
+        </p>
+      </article>
+
+      <article>
+        <section id="borja" class="profile">
+          <strong>Borja Salguero (@borjasalguero)</strong><br>
+          FirefoxOS Frontend Engineer. Web technologies passionate and Vespa enthusiast.
+        </section>
+        <section id="francisco" class="profile">
+          <strong>Francisco Jordano (@mepartoconmigo)</strong><br>
+          Metal head \m/. FirefoxOS addict. Software handcrafter.
+        </section>
+      </article>
+
+      <article>
+        <h1>
+          What is a Web Activity?
+        </h1>
+        <p>
+          An activity is something a *user* wants to do.
+        </p>
+      </article>
+
+      <article>
+        <h1>
+          Is a standard?
+        </h1>
+        <p>
+          http://www.w3.org/TR/web-intents/
+        </p>
+      </article>
+
+      <article>
+        manifest.webapp
+        <pre>
+{
+  ...
+  "activities": {
+    "pick": {
+      "href": "/handler.html",
+      "disposition": "window",
+      "filters": {
+        "type": ["image/*","image/jpeg","image/png"]
+      },
+      "returnValue": true
+    }
+  }
+  ...
+}
+        </pre>
+      </article>
+
+      <article>
+        Activity provider
+        <pre>
+navigator.mozSetMessageHandler('activity', function(activityRequest) {
+  var option = activityRequest.source;
+
+  if (option.name === "pick") {
+    // Do something to handle the activity
+    ...
+
+    // Send back the result
+    if (picture) {
+      activityRequest.postResult(picture);
+    } else {
+      activityRequest.postError("Unable to provide a picture");
+    }
+  }
+});
+        </pre>
+      </article>
+
+      <article>
+        Activity consumer
+        <pre>
+var activity = new MozActivity({
+  name: "pick",
+  data: {
+    type: "image/jpeg"
+  }
+});
+
+activity.onsuccess = function() {
+  var picture = this.result;
+  console.log("A picture has been retrieved");
+};
+
+activity.onerror = function() {
+  console.log(this.error);
+};
+        </pre>
+      </article>
+
+      <article>
+        <h1>
+          ...and If no user involved?
+        </h1>
+        <p>
+          SystemMessages & InterApp Communication
+        </p>
+      </article>
+
+      <article>
+        SystemMessage
+        <pre>
+{
+  ...
+  "messages": [
+     { "alarm": "/index.html" },
+     { "bluetooth-opp-transfer-complete": "/index.html" }
+     ...
+     ],
+  ...
+}
+        </pre>
+         <pre>
+navigator.mozSetMessageHandler('alarm', function alarm_handler() {
+    // TODO Implement whatever you need
+});
+        </pre>
+      </article>
+
+      <article>
+        IAC Manifest
+        <pre>
+{
+  ...
+  "connections": {
+    "example": {
+      "description": "Example for IAC",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
+    }
+  }
+  ...
+}
+        </pre>
+      </article>
+
+      <article>
+        IAC Handler
+        <pre>
+navigator.mozApps.getSelf().onsuccess = function(evt) {
+  var app = evt.target.result;
+  app.connect('example').then(function onConnAccepted(ports) {
+    ports.forEach(function(port) {
+      port.postMessage('Message to SEND');
+    });
+  }, function onConnRejected(reason) {
+    console.log('Error while connecting ' + reason);
+  });
+};
+        </pre>
+        <pre>
+ window.addEventListener('iac-example', IACHandler);
+        </pre>
+      </article>
+
+      <article>
+        <h1>
+          More info?
+        </h1>
+        <p>
+          <a target="_blank" href="https://developer.mozilla.org/en-US/docs/WebAPI/Web_Activities">https://developer.mozilla.org/en-US/docs/WebAPI/Web_Activities</a>
+        </p>
+      </article>
+     
+      <article class='biglogo2'>
+      </article>
+
+    </section>
+
+  </body>
+</html>
